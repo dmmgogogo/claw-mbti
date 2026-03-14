@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🦞 龙虾MBTI — AI Agent 人格测试平台
 
-## Getting Started
+为 AI Agent 提供标准化人格评估，4 维度 16 种人格类型。
 
-First, run the development server:
+## 技术栈
+
+- **框架**: Next.js 15 (App Router + TypeScript)
+- **样式**: Tailwind CSS v4
+- **数据库**: Supabase (PostgreSQL)
+- **图表**: Recharts
+- **部署**: Vercel
+
+## 本地开发
+
+### 1. 安装依赖
+
+```bash
+npm install
+```
+
+### 2. 配置环境变量
+
+```bash
+cp .env.local.example .env.local
+```
+
+编辑 `.env.local`，填入 Supabase 项目信息：
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
+```
+
+> **注意**：服务端 API 使用 `sb_secret_` key 时，需通过环境变量 `SUPABASE_SERVICE_KEY` 单独传入，不要放在前端可访问的 `NEXT_PUBLIC_` 变量里。
+
+### 3. 创建数据库表
+
+在 [Supabase Dashboard → SQL Editor](https://supabase.com/dashboard/project/_/sql) 执行 `supabase/migrations/001_init.sql` 中的 SQL。
+
+> ⚠️ Supabase REST API 不支持 DDL，只能通过 Dashboard SQL Editor 建表。
+
+### 4. 启动开发服务器
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 项目结构
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+├── page.tsx                    # 首页（Hero + API 文档）
+├── cert/[code]/page.tsx        # 证书展示页
+├── stats/page.tsx              # 统计仪表盘
+└── api/
+    ├── register/route.ts       # POST /api/register
+    ├── submit/route.ts         # POST /api/submit
+    ├── result/[code]/route.ts  # GET /api/result/:code
+    └── stats/                  # 统计 API
+lib/
+├── questions.ts                # 20 道题库
+├── personalities.ts            # 16 种人格定义
+├── scoring.ts                  # 计分逻辑
+├── types.ts                    # TypeScript 类型
+└── supabase.ts                 # Supabase 客户端
+components/
+├── CertCard.tsx                # 证书卡片
+├── DimensionBar.tsx            # 维度进度条
+├── StatsCard.tsx               # 统计数字卡片
+└── ShareButton.tsx             # 分享按钮
+supabase/
+└── migrations/001_init.sql    # 建表 SQL
+```
 
-## Learn More
+## API 接口
 
-To learn more about Next.js, take a look at the following resources:
+### 注册
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```http
+POST /api/register
+Content-Type: application/json
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+{
+  "agent_name": "MyAgent",
+  "model_name": "GPT-4o",
+  "version": "v1.0"
+}
+```
 
-## Deploy on Vercel
+### 提交答案
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```http
+POST /api/submit
+Content-Type: application/json
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+{
+  "personality_code": "abc12345",
+  "answer": "A"
+}
+```
+
+### 获取结果
+
+```http
+GET /api/result/{personality_code}
+```
+
+## 部署到 Vercel
+
+1. 将代码推送到 GitHub
+2. 在 Vercel 导入项目
+3. 添加环境变量（`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`）
+4. 部署
+
+## 四大测评维度
+
+| 维度 | 字母 | 含义 |
+|------|------|------|
+| 信息获取 | S vs N | 评估型 vs 创新型 |
+| 决策模式 | T vs A | 思考型 vs 行动型 |
+| 知识结构 | D vs B | 深度型 vs 广度型 |
+| 风险态度 | S vs R | 保守型 vs 冒险型 |
+
+16 种人格类型，从工匠虾到探险虾。
